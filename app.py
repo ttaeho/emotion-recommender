@@ -13,51 +13,67 @@ LASTFM_API_KEY = '684f541055c4022dfd2a106fe20ac356'
 youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
 
 # ========== 감정 그룹 ==========
+# ========== 감정 그룹 ==========
 emotion_group = {
-    "기쁨": ["기쁨", "감동", "희망", "상쾌해"],
-    "슬픔": ["슬퍼", "우울", "외로움", "무기력"],
-    "불안": ["불안", "초조함", "지침"],
-    "분노": ["분노", "스트레스", "짜증"],
-    "당황": ["당황", "지루함", "놀람"],
-    "자기강화": ["에너제틱", "설렘", "집중", "차분해", "자신감 부족"]
+    "기쁨": ["즐거움", "감사함", "희망", "상쾌함"],
+    "슬픔": ["외로움", "허전함", "무기력함", "눈물날 듯함"],
+    "불안": ["초조함", "걱정됨", "예민함"],
+    "분노": ["화남", "답답함", "폭발할 것 같음"],
+    "당황": ["혼란스러움", "두려움", "놀람"],
+    "자기강화": ["에너지 넘침", "설렘", "몰입", "차분함", "자신감 부족"]
 }
 
 # ========== 운동 추천 매핑 ==========
 emotion_to_workout = {
-    "우울": "요가 스트레칭", "불안": "명상 요가", "분노": "격한 유산소 운동",
-    "기쁨": "다이어트 댄스", "지루함": "재미있는 댄스 운동", "무기력": "10분 전신 스트레칭",
-    "스트레스": "HIIT 전신운동", "자신감 부족": "근력 운동 초보자", "상쾌해": "전신 유산소",
-    "지침": "저강도 스트레칭", "설렘": "로맨틱 요가", "집중": "코어 강화 운동",
-    "슬퍼": "힐링 요가", "에너제틱": "고강도 인터벌", "차분해": "명상 스트레칭",
-    "감동": "감성 필라테스", "희망": "긍정 에너지 요가", "외로움": "혼자하는 요가",
-    "초조함": "불안 완화 요가", "짜증": "화풀이 복싱", "놀람": "밸런스 트레이닝",
-    "당황": "마음 안정 스트레칭"
+    "즐거움": "다이어트 댄스",
+    "감사함": "감성 필라테스",
+    "희망": "긍정 에너지 요가",
+    "상쾌함": "전신 유산소",
+    "외로움": "혼자하는 요가",
+    "허전함": "느긋한 스트레칭",
+    "무기력함": "10분 전신 스트레칭",
+    "눈물날 듯함": "힐링 요가",
+    "초조함": "불안 완화 요가",
+    "걱정됨": "명상 요가",
+    "예민함": "호흡 명상",
+    "화남": "격한 유산소 운동",
+    "답답함": "복싱 서킷",
+    "폭발할 것 같음": "화풀이 인터벌 트레이닝",
+    "혼란스러움": "마음 안정 스트레칭",
+    "두려움": "부드러운 요가",
+    "놀람": "밸런스 트레이닝",
+    "에너지 넘침": "고강도 인터벌",
+    "설렘": "로맨틱 요가",
+    "몰입": "코어 강화 운동",
+    "차분함": "명상 스트레칭",
+    "자신감 부족": "근력 운동 초보자"
 }
+
 
 # ========== 음악 태그 ==========
 korean_to_tags = {
-    "상쾌해": ["happy", "fresh", "uplifting"],
-    "지침": ["tired", "relaxing", "low energy"],
-    "설렘": ["romantic", "dreamy", "sweet"],
-    "분노": ["angry", "powerful", "aggressive"],
-    "집중": ["focus", "instrumental", "study"],
-    "슬퍼": ["sad", "emotional", "melancholy"],
-    "에너제틱": ["energetic", "workout", "motivation"],
-    "차분해": ["relaxing", "calm", "ambient"],
-    "우울": ["melancholy", "slow", "comforting"],
-    "불안": ["soothing", "peaceful", "calm"],
-    "기쁨": ["joyful", "upbeat", "dance"],
-    "지루함": ["fun", "funky", "playful"],
-    "무기력": ["wake up", "motivating"],
-    "스트레스": ["release", "dynamic", "powerful"],
-    "자신감 부족": ["empowerment", "strength"],
-    "감동": ["cinematic", "emotional"],
+    "즐거움": ["joyful", "upbeat", "dance"],
+    "감사함": ["cinematic", "emotional"],
     "희망": ["hopeful", "positive"],
+    "상쾌함": ["happy", "fresh", "uplifting"],
     "외로움": ["lonely", "slow", "introspective"],
+    "허전함": ["nostalgic", "soft", "slow"],
+    "무기력함": ["wake up", "motivating"],
+    "눈물날 듯함": ["sad", "emotional", "melancholy"],
     "초조함": ["uneasy", "delicate"],
-    "짜증": ["punk", "noise"],
+    "걱정됨": ["soothing", "calm", "reassuring"],
+    "예민함": ["gentle", "peaceful"],
+    "화남": ["angry", "aggressive", "rock"],
+    "답답함": ["punk", "noise"],
+    "폭발할 것 같음": ["powerful", "explosive", "high energy"],
+    "혼란스러움": ["chaotic", "quirky"],
+    "두려움": ["cinematic", "tense"],
     "놀람": ["surprising", "experimental"],
-    "당황": ["chaotic", "quirky"]
+    "에너지 넘침": ["energetic", "workout", "motivation"],
+    "설렘": ["romantic", "dreamy", "sweet"],
+    "몰입": ["focus", "instrumental", "study"],
+    "차분함": ["relaxing", "calm", "ambient"],
+    "자신감 부족": ["empowerment", "strength"]
 }
 
 # ========== 음악 추천 ==========

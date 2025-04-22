@@ -1,4 +1,5 @@
-# app.py (BLIP 제거 버전)
+
+# app.py (대분류-세분류 감정 선택 UI 반영 버전)
 import streamlit as st
 import requests
 import random
@@ -11,25 +12,29 @@ LASTFM_API_KEY = '684f541055c4022dfd2a106fe20ac356'
 
 youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
 
-# ========== 감정 매핑 ==========
-emotion_to_workout = {
-    "우울": "요가 스트레칭",
-    "불안": "명상 요가",
-    "분노": "격한 유산소 운동",
-    "기쁨": "다이어트 댄스",
-    "지루함": "재미있는 댄스 운동",
-    "무기력": "10분 전신 스트레칭",
-    "스트레스": "HIIT 전신운동",
-    "자신감 부족": "근력 운동 초보자",
-    "상쾌해": "전신 유산소",
-    "지침": "저강도 스트레칭",
-    "설렘": "로맨틱 요가",
-    "집중": "코어 강화 운동",
-    "슬퍼": "힐링 요가",
-    "에너제틱": "고강도 인터벌",
-    "차분해": "명상 스트레칭"
+# ========== 감정 그룹 ==========
+emotion_group = {
+    "기쁨": ["기쁨", "감동", "희망", "상쾌해"],
+    "슬픔": ["슬퍼", "우울", "외로움", "무기력"],
+    "불안": ["불안", "초조함", "지침"],
+    "분노": ["분노", "스트레스", "짜증"],
+    "당황": ["당황", "지루함", "놀람"],
+    "자기강화": ["에너제틱", "설렘", "집중", "차분해", "자신감 부족"]
 }
 
+# ========== 운동 추천 매핑 ==========
+emotion_to_workout = {
+    "우울": "요가 스트레칭", "불안": "명상 요가", "분노": "격한 유산소 운동",
+    "기쁨": "다이어트 댄스", "지루함": "재미있는 댄스 운동", "무기력": "10분 전신 스트레칭",
+    "스트레스": "HIIT 전신운동", "자신감 부족": "근력 운동 초보자", "상쾌해": "전신 유산소",
+    "지침": "저강도 스트레칭", "설렘": "로맨틱 요가", "집중": "코어 강화 운동",
+    "슬퍼": "힐링 요가", "에너제틱": "고강도 인터벌", "차분해": "명상 스트레칭",
+    "감동": "감성 필라테스", "희망": "긍정 에너지 요가", "외로움": "혼자하는 요가",
+    "초조함": "불안 완화 요가", "짜증": "화풀이 복싱", "놀람": "밸런스 트레이닝",
+    "당황": "마음 안정 스트레칭"
+}
+
+# ========== 음악 태그 ==========
 korean_to_tags = {
     "상쾌해": ["happy", "fresh", "uplifting"],
     "지침": ["tired", "relaxing", "low energy"],
@@ -45,7 +50,14 @@ korean_to_tags = {
     "지루함": ["fun", "funky", "playful"],
     "무기력": ["wake up", "motivating"],
     "스트레스": ["release", "dynamic", "powerful"],
-    "자신감 부족": ["empowerment", "strength"]
+    "자신감 부족": ["empowerment", "strength"],
+    "감동": ["cinematic", "emotional"],
+    "희망": ["hopeful", "positive"],
+    "외로움": ["lonely", "slow", "introspective"],
+    "초조함": ["uneasy", "delicate"],
+    "짜증": ["punk", "noise"],
+    "놀람": ["surprising", "experimental"],
+    "당황": ["chaotic", "quirky"]
 }
 
 # ========== 음악 추천 ==========
@@ -75,20 +87,17 @@ def get_songs_by_mood(korean_mood, api_key, sample_count=5):
     sampled = random.sample(unique_tracks, min(sample_count, len(unique_tracks)))
     return [(track['name'], track['artist']['name']) for track in sampled]
 
-# ========== 유튜브 API ==========
-def search_youtube(query, max_results=5):
-    request = youtube.search().list(
-        q=query, part='snippet', maxResults=max_results, type='video'
-    )
+# ========== 유튜브 & 운동 분석 ==========
+def search_youtube(query, max_results=3):
+    request = youtube.search().list(q=query, part='snippet', maxResults=max_results, type='video')
     response = request.execute()
-    videos = []
-    for item in response['items']:
-        videos.append({
+    return [
+        {
             'title': item['snippet']['title'],
             'video_id': item['id']['videoId'],
             'thumbnail': item['snippet']['thumbnails']['high']['url']
-        })
-    return videos
+        } for item in response['items']
+    ]
 
 def get_video_details(video_id):
     request = youtube.videos().list(part='snippet,contentDetails', id=video_id)
@@ -108,11 +117,8 @@ def get_video_details(video_id):
 
 def parse_duration(duration_str):
     duration = isodate.parse_duration(duration_str)
-    minutes = duration.seconds // 60
-    seconds = duration.seconds % 60
-    return f"{minutes}분 {seconds}초"
+    return f"{duration.seconds // 60}분 {duration.seconds % 60}초"
 
-# ========== 운동 텍스트 분석 ==========
 def extract_workout_keywords(text):
     text = text.lower()
     keywords = {'부위': [], '시간': None, '기구': [], '난이도': '중간'}
@@ -130,7 +136,7 @@ def extract_workout_keywords(text):
     if any(x in text for x in ['hiit', '어려운']): keywords['난이도'] = '어려움'
     return keywords
 
-# ========== 최종 통합 출력 ==========
+# ========== 통합 추천 ==========
 def recommend_all_streamlit(emotion):
     st.subheader(f"🎯 감정: {emotion}")
     workout_keyword = emotion_to_workout.get(emotion)
@@ -139,20 +145,17 @@ def recommend_all_streamlit(emotion):
         videos = search_youtube(workout_keyword, max_results=3)
         for v in videos:
             video_info = get_video_details(v['video_id'])
-            caption = "썸네일 분석 생략됨"
             combined = ' '.join([
                 video_info.get('title', ''),
                 ' '.join(video_info.get('tags', [])),
-                video_info.get('description', ''),
-                caption
+                video_info.get('description', '')
             ])
             info = extract_workout_keywords(combined)
             st.markdown(f"### 🔗 [영상 보러가기](https://youtu.be/{v['video_id']})")
-            st.markdown(f"**제목:** {video_info['title']}")
             st.image(v['thumbnail'], width=300)
+            st.markdown(f"**제목:** {video_info['title']}")
             st.markdown(f"**채널:** {video_info['channel']}")
             st.markdown(f"**길이:** {parse_duration(video_info['duration'])}")
-            st.markdown(f"**썸네일 설명:** {caption}")
             st.markdown("**운동 정보 분석:**")
             st.markdown(f"- 운동 부위: {', '.join(info['부위']) if info['부위'] else '없음'}")
             st.markdown(f"- 기구: {', '.join(info['기구']) if info['기구'] else '없음'}")
@@ -166,12 +169,13 @@ def recommend_all_streamlit(emotion):
     for name, artist in songs:
         st.markdown(f"🎵 **{name}** - *{artist}*")
 
-# ========== Streamlit 앱 실행 ==========
+# ========== Streamlit 실행 ==========
 st.set_page_config(page_title="감정 기반 운동+음악 추천", layout="wide")
 st.title("🧠 감정 기반 운동 & 음악 추천기")
-supported_emotions = sorted(list(set(emotion_to_workout.keys()) | set(korean_to_tags.keys())))
 
-selected_emotion = st.selectbox("지금 기분은 어떤가요?", supported_emotions)
+category = st.selectbox("감정 카테고리를 선택하세요", list(emotion_group.keys()))
+emotion = st.selectbox("보다 세밀한 감정을 선택하세요", emotion_group[category])
+
 if st.button("추천 받기"):
     with st.spinner("추천을 생성 중입니다..."):
-        recommend_all_streamlit(selected_emotion)
+        recommend_all_streamlit(emotion)

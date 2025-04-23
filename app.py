@@ -1,6 +1,7 @@
 # app.py — 감정 예측 + 운동/음악 추천 통합 앱 (klue/bert 기반)
 
 import streamlit as st
+
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
@@ -11,6 +12,8 @@ import requests
 import random
 import os
 import gdown
+
+st.set_page_config(page_title="감정 기반 추천기", layout="wide")
 
 # ✅ 모델 구성 ------------------------------------------
 class BERTClassifier(nn.Module):
@@ -144,7 +147,7 @@ def search_youtube(query, max_results=3):
     ]
 
 # ✅ Streamlit 앱 ------------------------------------------
-st.set_page_config(page_title="감정 기반 추천기", layout="wide")
+
 st.title("🧠 문장 기반 감정 분석 + 운동 & 음악 추천")
 
 user_input = st.text_area("당신의 감정을 문장으로 표현해주세요:", height=100)

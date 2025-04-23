@@ -1,7 +1,8 @@
 streamlit
-google-api-python-client
+torch
 transformers
-pillow
+scikit-learn
+google-api-python-client
 isodate
 requests
-gdwon
+gdown

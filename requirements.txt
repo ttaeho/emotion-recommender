@@ -1,9 +1,9 @@
 streamlit
-torch==2.2.2
-transformers==4.35.2
+torch
+transformers
 scikit-learn
 google-api-python-client
 isodate
 requests
 gdown
-pillow==9.4.0
+pillow

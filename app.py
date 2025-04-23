@@ -41,8 +41,9 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 tokenizer = AutoTokenizer.from_pretrained("klue/bert-base")
 bert = AutoModel.from_pretrained("klue/bert-base")
 model = BERTClassifier(bert).to(device)
-model.load_state_dict(torch.load("kluebert_emotion.pt", map_location=device))
+model.load_state_dict(torch.load("kluebert_emotion.pt", map_location=device), strict=False)  # 🔧 핵심 변경
 model.eval()
+
 
 label_map = {
     0: "기쁨",

@@ -108,7 +108,7 @@ emotion_to_workout = {
     "무기력함": "기상 5분 루틴",
     "슬픔": "햇빛 스트레칭 루틴",
     "눈물날 듯함": "마음 회복 요가"
-
+}
 # ✅ 감정 예측 함수 ------------------------------------------
 def predict_emotion(text, threshold=0.6):
     tokens = tokenizer(text, return_tensors="pt", truncation=True, padding=True, max_length=128)

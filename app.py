@@ -12,6 +12,10 @@ import random
 import os
 import gdown
 st.set_page_config(page_title="감정 기반 추천기", layout="wide")
+# 세션 상태 초기화
+if "show_recommendation" not in st.session_state:
+    st.session_state["show_recommendation"] = False
+
 # ✅ 모델 구성 ------------------------------------------
 class BERTClassifier(nn.Module):
     def __init__(self, bert, hidden_size=768, num_classes=6, dropout_rate=0.1):
@@ -143,33 +147,48 @@ def search_youtube(query, max_results=3):
 
 # ✅ Streamlit 앱 ------------------------------------------
 
-st.title("🧠 문장 기반 감정 분석 + 운동 & 음악 추천")
 
 user_input = st.text_area("당신의 감정을 문장으로 표현해주세요:", height=100)
 
+# 감정 예측 버튼
 if st.button("감정 예측 및 추천 받기"):
     with st.spinner("감정을 분석 중입니다..."):
         predicted_emotion, confidence = predict_emotion(user_input)
-        st.success(f"예측된 감정: **{predicted_emotion}** (확신도: {confidence:.2f})")
+        st.session_state["predicted_emotion"] = predicted_emotion
+        st.session_state["confidence"] = confidence
+        st.session_state["show_recommendation"] = False  # 초기화
 
-        category_match = None
-        for category, group in emotion_group.items():
-            if predicted_emotion in group or predicted_emotion == category:
-                category_match = category
-                break
+if "predicted_emotion" in st.session_state:
+    predicted_emotion = st.session_state["predicted_emotion"]
+    confidence = st.session_state["confidence"]
+    st.success(f"예측된 감정: **{predicted_emotion}** (확신도: {confidence:.2f})")
 
-        if category_match:
-            st.info(f"**{category_match}** 감정 카테고리에서 세부 감정을 선택해주세요.")
-            sub_emotion = st.selectbox("세부 감정을 선택하세요", emotion_group[category_match])
-            if st.button("최종 추천 보기"):
-                st.subheader("🎬 유튜브 영상 추천")
-                videos = search_youtube(sub_emotion + " 운동")
-                for video in videos:
-                    st.markdown(f"**{video['title']}**")
-                    st.video(f"https://www.youtube.com/watch?v={video['video_id']}")
-                st.subheader("🎧 음악 추천")
-                songs = get_songs_by_mood(sub_emotion, LASTFM_API_KEY)
-                for name, artist in songs:
-                    st.markdown(f"🎵 **{name}** - *{artist}*")
-        else:
-            st.warning("예측된 감정이 사전 설정된 감정 그룹과 일치하지 않습니다. 수동 선택이 필요합니다.")
+    category_match = None
+    for category, group in emotion_group.items():
+        if predicted_emotion in group or predicted_emotion == category:
+            category_match = category
+            break
+
+    if category_match:
+        st.info(f"**{category_match}** 감정 카테고리에서 세부 감정을 선택해주세요.")
+        sub_emotion = st.selectbox("세부 감정을 선택하세요", emotion_group[category_match])
+
+        # 세부 감정 추천 트리거
+        if st.button("최종 추천 보기"):
+            st.session_state["show_recommendation"] = True
+            st.session_state["sub_emotion"] = sub_emotion
+
+        # 실제 추천 표시
+        if st.session_state.get("show_recommendation", False):
+            st.subheader("🎬 유튜브 영상 추천")
+            videos = search_youtube(st.session_state["sub_emotion"] + " 운동")
+            for video in videos:
+                st.markdown(f"**{video['title']}**")
+                st.video(f"https://www.youtube.com/watch?v={video['video_id']}")
+
+            st.subheader("🎧 음악 추천")
+            songs = get_songs_by_mood(st.session_state["sub_emotion"], LASTFM_API_KEY)
+            for name, artist in songs:
+                st.markdown(f"🎵 **{name}** - *{artist}*")
+    else:
+        st.warning("예측된 감정이 사전 설정된 감정 그룹과 일치하지 않습니다.")

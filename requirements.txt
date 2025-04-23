@@ -1,6 +1,6 @@
-streamlit
-torch
-transformers==4.38.2
+streamlit==1.25.0
+torch==2.2.2
+transformers==4.35.2
 scikit-learn
 google-api-python-client
 isodate

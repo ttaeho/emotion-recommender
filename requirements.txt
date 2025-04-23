@@ -6,4 +6,4 @@ google-api-python-client
 isodate
 requests
 gdown
-pillow==10.2.0
+pillow>=10.2.0

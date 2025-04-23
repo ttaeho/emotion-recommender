@@ -36,6 +36,15 @@ if not os.path.exists("kluebert_emotion.pt"):
     url = "https://drive.google.com/uc?id=14KcQ7KpTQXaQXETR_LS_edwiZL6j1DzO"
     gdown.download(url, "kluebert_emotion.pt", quiet=False)
 
+# ✅ 모델 파일 정상 다운로드 확인 (파일 크기 체크)
+if os.path.exists("kluebert_emotion.pt"):
+    size = os.path.getsize("kluebert_emotion.pt")
+    st.info(f"✅ 모델 파일 존재함 (크기: {size / 1024 / 1024:.2f}MB)")
+    if size < 1 * 1024 * 1024:  # 1MB 미만이면 거의 실패한 것
+        st.warning("⚠️ 모델 파일이 너무 작습니다. 다운로드에 실패했을 가능성이 있습니다.")
+else:
+    st.error("❌ 모델 파일이 없습니다. 다운로드가 실패했을 수 있습니다.")
+
 # ✅ 모델 로딩
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 tokenizer = BertTokenizer.from_pretrained("klue/bert-base")

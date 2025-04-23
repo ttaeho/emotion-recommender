@@ -45,13 +45,17 @@ if os.path.exists("kluebert_emotion.pt"):
 else:
     st.error("❌ 모델 파일이 없습니다. 다운로드가 실패했을 수 있습니다.")
 
+
 # ✅ 모델 로딩
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 tokenizer = BertTokenizer.from_pretrained("klue/bert-base")
 bert = BertModel.from_pretrained("klue/bert-base")
 model = BERTClassifier(bert).to(device)
-model.load_state_dict(torch.load("kluebert_emotion.pt", map_location=device))
+
+# ✅ 여기 strict=False 추가!
+model.load_state_dict(torch.load("kluebert_emotion.pt", map_location=device), strict=False)
 model.eval()
+
 
 
 label_map = {

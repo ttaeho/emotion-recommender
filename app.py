@@ -9,6 +9,8 @@ from googleapiclient.discovery import build
 import isodate
 import requests
 import random
+import os
+import gdown
 
 # ✅ 모델 구성 ------------------------------------------
 class BERTClassifier(nn.Module):
@@ -27,12 +29,21 @@ class BERTClassifier(nn.Module):
         return self.classifier(out)
 
 # ✅ 모델 로딩 ------------------------------------------
+
+
+# ✅ 모델 파일이 없다면 Google Drive에서 다운로드
+if not os.path.exists("kluebert_emotion.pt"):
+    url = "https://drive.google.com/uc?id=14KcQ7KpTQXaQXETR_LS_edwiZL6j1DzO"
+    gdown.download(url, "kluebert_emotion.pt", quiet=False)
+
+# ✅ 모델 로딩
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 tokenizer = BertTokenizer.from_pretrained("klue/bert-base")
 bert = BertModel.from_pretrained("klue/bert-base")
 model = BERTClassifier(bert).to(device)
 model.load_state_dict(torch.load("kluebert_emotion.pt", map_location=device))
 model.eval()
+
 
 label_map = {
     0: "기쁨",

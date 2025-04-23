@@ -1,19 +1,18 @@
 # app.py — 감정 예측 + 운동/음악 추천 통합 앱 (klue/bert 기반)
 
 import streamlit as st
+st.set_page_config(page_title="감정 기반 추천기", layout="wide")
 
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
-from transformers import BertTokenizer, BertModel
+from transformers import AutoTokenizer, AutoModel
 from googleapiclient.discovery import build
 import isodate
 import requests
 import random
 import os
 import gdown
-
-st.set_page_config(page_title="감정 기반 추천기", layout="wide")
 
 # ✅ 모델 구성 ------------------------------------------
 class BERTClassifier(nn.Module):
@@ -24,42 +23,26 @@ class BERTClassifier(nn.Module):
         self.classifier = nn.Linear(hidden_size, num_classes)
 
     def forward(self, input_ids, attention_mask=None, token_type_ids=None):
-        _, pooled_output = self.bert(input_ids=input_ids,
-                                     attention_mask=attention_mask,
-                                     token_type_ids=token_type_ids,
-                                     return_dict=False)
+        outputs = self.bert(input_ids=input_ids,
+                            attention_mask=attention_mask,
+                            token_type_ids=token_type_ids,
+                            return_dict=True)
+        pooled_output = outputs.pooler_output
         out = self.dropout(pooled_output)
         return self.classifier(out)
 
-# ✅ 모델 로딩 ------------------------------------------
-
-
-# ✅ 모델 파일이 없다면 Google Drive에서 다운로드
+# ✅ 모델 파일 다운로드 ------------------------------------------
 if not os.path.exists("kluebert_emotion.pt"):
     url = "https://drive.google.com/uc?id=14KcQ7KpTQXaQXETR_LS_edwiZL6j1DzO"
     gdown.download(url, "kluebert_emotion.pt", quiet=False)
 
-# ✅ 모델 파일 정상 다운로드 확인 (파일 크기 체크)
-if os.path.exists("kluebert_emotion.pt"):
-    size = os.path.getsize("kluebert_emotion.pt")
-    st.info(f"✅ 모델 파일 존재함 (크기: {size / 1024 / 1024:.2f}MB)")
-    if size < 1 * 1024 * 1024:  # 1MB 미만이면 거의 실패한 것
-        st.warning("⚠️ 모델 파일이 너무 작습니다. 다운로드에 실패했을 가능성이 있습니다.")
-else:
-    st.error("❌ 모델 파일이 없습니다. 다운로드가 실패했을 수 있습니다.")
-
-
-# ✅ 모델 로딩
+# ✅ 모델 로딩 ------------------------------------------
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-tokenizer = BertTokenizer.from_pretrained("klue/bert-base")
-bert = BertModel.from_pretrained("klue/bert-base")
+tokenizer = AutoTokenizer.from_pretrained("klue/bert-base")
+bert = AutoModel.from_pretrained("klue/bert-base")
 model = BERTClassifier(bert).to(device)
-
-# ✅ 여기 strict=False 추가!
-model.load_state_dict(torch.load("kluebert_emotion.pt", map_location=device), strict=False)
+model.load_state_dict(torch.load("kluebert_emotion.pt", map_location=device))
 model.eval()
-
-
 
 label_map = {
     0: "기쁨",
@@ -147,7 +130,6 @@ def search_youtube(query, max_results=3):
     ]
 
 # ✅ Streamlit 앱 ------------------------------------------
-
 st.title("🧠 문장 기반 감정 분석 + 운동 & 음악 추천")
 
 user_input = st.text_area("당신의 감정을 문장으로 표현해주세요:", height=100)
@@ -172,6 +154,7 @@ if st.button("감정 예측 및 추천 받기"):
                 for video in videos:
                     st.markdown(f"**{video['title']}**")
                     st.video(f"https://www.youtube.com/watch?v={video['video_id']}")
+
                 st.subheader("🎧 음악 추천")
                 songs = get_songs_by_mood(sub_emotion, LASTFM_API_KEY)
                 for name, artist in songs:
